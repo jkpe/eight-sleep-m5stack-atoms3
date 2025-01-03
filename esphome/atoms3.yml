@@ -28,7 +28,7 @@ logger:
 
 api:
 #  encryption:
-#    key: "your_api_encryption_key"  # Replace with your actual key or remove if not using encryption
+#    key: "your_api_encryption_key"  # optional, recommended. generate here: https://esphome.io/components/api.html
 
 ota:
   platform: esphome
@@ -45,7 +45,7 @@ i2c:
     scl: GPIO39
 
 sensor:
-#  - platform: mpu6886
+#  - platform: mpu6886 # optional 6-axis gyro sensor
 #    address: 0x68
 #    accel_x:
 #      name: "$device_name MPU6886 Accel X"
