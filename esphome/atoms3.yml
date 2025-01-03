@@ -27,6 +27,9 @@ logger:
   baud_rate: 0
 
 api:
+#  encryption:
+#    key: "your_api_encryption_key"  # Replace with your actual key or remove if not using encryption
+
 ota:
   platform: esphome
 
@@ -42,25 +45,50 @@ i2c:
     scl: GPIO39
 
 sensor:
-  - platform: mpu6886
-    address: 0x68
-    accel_x:
-      name: "$device_name MPU6886 Accel X"
-    accel_y:
-      name: "$device_name MPU6886 Accel Y"
-    accel_z:
-      name: "$device_name MPU6886 Accel z"
-    gyro_x:
-      name: "$device_name MPU6886 Gyro X"
-    gyro_y:
-      name: "$device_name MPU6886 Gyro Y"
-    gyro_z:
-      name: "$device_name MPU6886 Gyro z"
-    temperature:
-      name: "$device_name MPU6886 Temperature"
-  - platform: wifi_signal
-    name: "WiFi Signal Sensor"
-    update_interval: 120s
+#  - platform: mpu6886
+#    address: 0x68
+#    accel_x:
+#      name: "$device_name MPU6886 Accel X"
+#    accel_y:
+#      name: "$device_name MPU6886 Accel Y"
+#    accel_z:
+#      name: "$device_name MPU6886 Accel Z"
+#    gyro_x:
+#      name: "$device_name MPU6886 Gyro X"
+#    gyro_y:
+#      name: "$device_name MPU6886 Gyro Y"
+#    gyro_z:
+#      name: "$device_name MPU6886 Gyro Z"
+#    temperature:
+#      name: "$device_name MPU6886 Temperature"
+#  - platform: wifi_signal
+#    name: "WiFi Signal Sensor"
+#    update_interval: 120s
+
+  # Home Assistant sensors
+  - platform: homeassistant
+    name: "Temperature"
+    entity_id: sensor.jack_bed_state_template
+    id: temperature
+    unit_of_measurement: ""
+
+  - platform: homeassistant
+    name: "Target Heating Level"
+    entity_id: sensor.jack_s_eight_sleep_side_bed_state
+    attribute: "Target Heating Level"
+    id: target_heating_level
+    unit_of_measurement: "" 
+
+text_sensor:
+  - platform: homeassistant
+    name: "Sleep Stage"
+    entity_id: sensor.jack_s_eight_sleep_side_sleep_stage
+    id: sleep_stage
+
+  - platform: homeassistant
+    name: "Bed State Type"
+    entity_id: sensor.jack_s_eight_sleep_side_bed_state_type
+    id: bed_state_type
 
 spi:
   clk_pin: GPIO17
@@ -71,22 +99,22 @@ color:
     red: 100%
     green: 0%
     blue: 0%
-  - id: my_yellow
-    red: 100%
-    green: 100%
-    blue: 0%
   - id: my_green
     red: 0%
     green: 100%
     blue: 0%
-  - id: my_blue
-    red: 0%
-    green: 0%
-    blue: 100%
   - id: my_gray
     red: 50%
     green: 50%
     blue: 50%
+  - id: my_black
+    red: 0%
+    green: 0%
+    blue: 0%
+  - id: my_white
+    red: 100%
+    green: 100%
+    blue: 100%
 
 font:
   - file: "gfonts://Roboto"
@@ -95,6 +123,9 @@ font:
   - file: "gfonts://Roboto"
     id: roboto_24
     size: 24
+  - file: "gfonts://Roboto"
+    id: roboto_18
+    size: 18
   - file: "gfonts://Roboto"
     id: roboto_12
     size: 12
@@ -120,29 +151,46 @@ display:
     reset_pin: 34
     rotation: 180
     invert_colors: true
-    update_interval: 1s
+    update_interval: 5s
     dimensions:
       height: 128
       width: 128
       offset_height: 1
       offset_width: 2
     lambda: |-
-      // Top section: Header with "8sleep"
-      it.fill_rect(0, 0, it.get_width(), 42, id(my_black));  // Black header background
-      it.print(5, 10, id(roboto_24), id(my_white), TextAlign::TOP_LEFT, "8sleep");
+      it.fill(id(my_black));  // Fill the background with black using defined color
 
-      // Bottom section: Programmable number
-      it.fill_rect(0, 42, it.get_width(), 86, id(my_black));  // Clear bottom section
-      it.printf(it.get_width() / 2, 86, id(roboto_32), id(my_white), TextAlign::CENTER, "%d", (int)id(display_number).state);
+      // Print "8sleep" at the top
+      it.print(0, 0, id(roboto_24), id(my_white), "8sleep");
 
-number:
-  - platform: template
-    name: "Programmable Number"
-    id: display_number
-    optimistic: true
-    min_value: 0
-    max_value: 999
-    step: 1
+      // Print Temperature without "°C"
+      if (!isnan(id(temperature).state)) {
+        it.printf(0, 24, id(roboto_18), id(my_white), "Temp: %.1f", id(temperature).state);
+      } else {
+        it.print(0, 24, id(roboto_18), id(my_white), "Temp: N/A");
+      }
+
+      // Print Target Heating Level
+      if (!isnan(id(target_heating_level).state)) {
+        it.printf(0, 48, id(roboto_18), id(my_white), "Target: %.1f", id(target_heating_level).state);
+      } else {
+        it.print(0, 48, id(roboto_18), id(my_white), "Target: N/A");
+      }
+
+      // Print Sleep Stage
+      if (!id(sleep_stage).state.empty()) {
+        it.printf(0, 72, id(roboto_18), id(my_white), "Stage: %s", id(sleep_stage).state.c_str());
+      } else {
+        it.print(0, 72, id(roboto_18), id(my_white), "Stage: N/A");
+      }
+
+      // Print Bed State Type
+      if (!id(bed_state_type).state.empty()) {
+        it.printf(0, 96, id(roboto_18), id(my_white), "State: %s", id(bed_state_type).state.c_str());
+      } else {
+        it.print(0, 96, id(roboto_18), id(my_white), "State: N/A");
+      }
+
 
 binary_sensor:
   - platform: gpio
@@ -158,18 +206,3 @@ binary_sensor:
     on_press:
       then:
         - logger.log: Button Pressed
-
-# output:
-#   - platform: ledc
-#     pin: 16
-#     min_power: 0.65
-#     max_power: 0.99
-#     zero_means_zero: true
-#     id: backlightdim
-
-# light:
-#   - platform: monochromatic
-#     output: backlightdim
-#     restore_mode: RESTORE_DEFAULT_ON
-#     name: "Backlight"
-#     id: backlightlight
