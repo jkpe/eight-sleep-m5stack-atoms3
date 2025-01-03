@@ -1,5 +1,5 @@
 esphome:
-  name: 8sleep
+  name: esphome-web-5c4f38
   friendly_name: 8sleep
   platformio_options:
     build_flags:
@@ -28,6 +28,7 @@ logger:
 
 api:
 ota:
+  platform: esphome
 
 # esp32_ble_tracker:
 
@@ -126,30 +127,24 @@ display:
       offset_height: 1
       offset_width: 2
     lambda: |-
-      it.rectangle(0,  0, it.get_width(), it.get_height(), id(my_blue));
-      it.rectangle(0, 20, it.get_width(), it.get_height(), id(my_blue));   // header bar
+      // Top section: Header with "8sleep"
+      it.fill_rect(0, 0, it.get_width(), 42, id(my_black));  // Black header background
+      it.print(5, 10, id(roboto_24), id(my_white), TextAlign::TOP_LEFT, "8sleep");
 
-      it.strftime((128 / 2), (128 / 3) * 1 + 5, id(roboto_24), id(my_gray), TextAlign::CENTER, "%Y-%m-%d", id(esptime).now());
-      it.strftime((128 / 2), (128 / 3) * 2 + 5, id(roboto_32), id(my_gray), TextAlign::CENTER, "%H:%M:%S", id(esptime).now());
-      it.print(5, 5, id(roboto_12), id(my_yellow), TextAlign::TOP_LEFT, "ESPHome");
+      // Bottom section: Programmable number
+      it.fill_rect(0, 42, it.get_width(), 86, id(my_black));  // Clear bottom section
+      it.printf(it.get_width() / 2, 86, id(roboto_32), id(my_white), TextAlign::CENTER, "%d", (int)id(display_number).state);
 
-      // Comment out the above lines to see the image without text overlaid
-      // it.image(0, 0, id(my_image));
+number:
+  - platform: template
+    name: "Programmable Number"
+    id: display_number
+    optimistic: true
+    min_value: 0
+    max_value: 999
+    step: 1
 
-      // if (id(system_status).state) {.   // depends in binary sensor :( 
-      if (id(wifi_id).is_connected()) {
-        it.print(115, 5, id(roboto_12), id(my_green), TextAlign::TOP_RIGHT, "Online");
-      }
-      else {
-        it.print(115, 5, id(roboto_12), id(my_red), TextAlign::TOP_RIGHT, "Offline");
-      }
-
-
-#G41=Button
 binary_sensor:
-  - platform: status
-    name: "Node Status"
-    id: system_status
   - platform: gpio
     name: Button
     pin:
@@ -163,21 +158,6 @@ binary_sensor:
     on_press:
       then:
         - logger.log: Button Pressed
-
-text_sensor:
-  - platform: wifi_info
-    ip_address:
-      name: ESP IP Address
-    ssid:
-      name: ESP Connected SSID
-    bssid:
-      name: ESP Connected BSSID
-    mac_address:
-      name: ESP Mac Wifi Address
-    scan_results:
-      name: ESP Latest Scan Results
-    dns_address:
-      name: ESP DNS Address
 
 # output:
 #   - platform: ledc
