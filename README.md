@@ -21,7 +21,7 @@ The device shows the current temperature, target heating level, sleep stage, and
 ## Requirements
 
 - **Hardware:**
-  - [ATOMS3 Dev Kit with 0.85" display](https://thepihut.com/products/atoms3-dev-kit-w-0-85-inch-screen)
+  - [M5STACK ATOMS3 Dev Kit with 0.85" display (C123)](https://thepihut.com/products/atoms3-dev-kit-w-0-85-inch-screen)
   - Eight Sleep mattress
 - **Software:**
   - ESPHome
