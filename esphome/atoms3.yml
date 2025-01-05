@@ -129,13 +129,20 @@ font:
     id: roboto_12
     size: 12
 
-# GPIO pin of the display backlight
-switch:
-  - platform: gpio
+output:
+  - platform: ledc
     pin: 16
+    min_power: 0.60
+    max_power: 0.99
+    zero_means_zero: true
+    id: backlightdim
+
+light:
+  - platform: monochromatic
+    output: backlightdim
+    restore_mode: RESTORE_DEFAULT_ON
     name: "Backlight"
-    id: backlight
-    restore_mode: ALWAYS_ON
+    id: backlightlight
 
 display:
   - platform: ili9xxx
