@@ -72,7 +72,7 @@ See the full ESPHome configuration in [atoms3.yml](esphome/atoms3.yml).
    This automation turns off the display backlight 30 seconds after the button is released, helping avoid unnecessary light during the night.
 
    ```yaml
-   alias: 8 sleep display auto off
+   alias: 8sleep display auto off
    description: ""
    triggers:
      - trigger: state
@@ -95,11 +95,11 @@ See the full ESPHome configuration in [atoms3.yml](esphome/atoms3.yml).
        from: unavailable
    conditions: []
    actions:
-     - action: switch.turn_off
+     - action: light.turn_off
        metadata: {}
        data: {}
        target:
-         entity_id: switch.esphome_web_5c4f38_backlight
+         entity_id: light.esphome_web_5c4f38_backlight
    mode: single
    ```
 
@@ -107,8 +107,8 @@ See the full ESPHome configuration in [atoms3.yml](esphome/atoms3.yml).
    This automation adjusts the Eight Sleep bed's temperature based on the currently selected temperature option. For instance, selecting `-2` lowers the temperature significantly, while `1` raises it slightly.
 
    ```yaml
-   alias: 8 sleep button control
-   description: ""
+   alias: 8sleep - send temperatures to Eight Sleep API
+   description: "Checks that the bed is not off (to prevent accidental clicks while the Eight Sleep is off, and then sends a temperature selection to Eight Sleep API"
    triggers:
      - trigger: state
        entity_id:
@@ -209,7 +209,7 @@ See the full ESPHome configuration in [atoms3.yml](esphome/atoms3.yml).
    This automation cycles through your predefined temperature settings (`-2`, `-1`, `0`, `1`) each time the button is pressed. If the backlight is off, the first press turns it on instead.
 
    ```yaml
-   alias: 8 sleep cycle options
+   alias: 8sleep - Wake display and cycle through temperatures
    description: ""
    triggers:
      - trigger: state
@@ -221,14 +221,14 @@ See the full ESPHome configuration in [atoms3.yml](esphome/atoms3.yml).
    actions:
      - if:
          - condition: state
-           entity_id: switch.esphome_web_5c4f38_backlight
+           entity_id: light.esphome_web_5c4f38_backlight
            state: "off"
        then:
-         - action: switch.turn_on
+         - action: light.turn_on
            metadata: {}
            data: {}
            target:
-             entity_id: switch.esphome_web_5c4f38_backlight
+             entity_id: light.esphome_web_5c4f38_backlight
        else:
          - action: input_select.select_next
            metadata: {}
