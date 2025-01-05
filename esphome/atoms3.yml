@@ -132,7 +132,7 @@ font:
 output:
   - platform: ledc
     pin: 16
-    min_power: 0.60
+    min_power: 0.30
     max_power: 0.99
     zero_means_zero: true
     id: backlightdim
