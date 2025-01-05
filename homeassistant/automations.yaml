@@ -1,0 +1,155 @@
+alias: 8sleep - Wake display and cycle through temperatures
+description: ""
+triggers:
+  - trigger: state
+    entity_id:
+      - binary_sensor.esphome_web_5c4f38_button
+    from: "off"
+    to: "on"
+conditions: []
+actions:
+  - if:
+      - condition: state
+        entity_id: light.esphome_web_5c4f38_backlight
+        state: "off"
+    then:
+      - action: light.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id: light.esphome_web_5c4f38_backlight
+    else:
+      - action: input_select.select_next
+        metadata: {}
+        data:
+          cycle: true
+        target:
+          entity_id: input_select.eight_sleep_temperature_choices
+mode: single
+
+alias: 8sleep display auto off
+description: ""
+triggers:
+  - trigger: state
+    entity_id:
+      - binary_sensor.esphome_web_5c4f38_button
+    to: "off"
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 30
+    from: "on"
+  - trigger: state
+    entity_id:
+      - binary_sensor.esphome_web_5c4f38_button
+    to: "off"
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 30
+    from: unavailable
+conditions: []
+actions:
+  - action: light.turn_off
+    metadata: {}
+    data: {}
+    target:
+      entity_id: light.esphome_web_5c4f38_backlight
+mode: single
+
+alias: 8sleep - send temperatures to Eight Sleep API
+description: "Checks that the bed is not off (to prevent accidental clicks while the Eight Sleep is off, and then sends a temperature selection to Eight Sleep API"
+triggers:
+  - trigger: state
+    entity_id:
+      - input_select.eight_sleep_temperature_choices
+    to: "-2"
+    id: "-2"
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 10
+  - trigger: state
+    entity_id:
+      - input_select.eight_sleep_temperature_choices
+    to: "-1"
+    id: "-1"
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 10
+  - trigger: state
+    entity_id:
+      - input_select.eight_sleep_temperature_choices
+    to: "0"
+    id: "0"
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 10
+  - trigger: state
+    entity_id:
+      - input_select.eight_sleep_temperature_choices
+    to: "1"
+    id: "1"
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 10
+conditions:
+  - condition: not
+    conditions:
+      - condition: state
+        entity_id: sensor.jack_s_eight_sleep_side_bed_state_type
+        state: "off"
+actions:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id:
+              - "-2"
+        sequence:
+          - action: eight_sleep.heat_set
+            target:
+              entity_id: sensor.jack_s_eight_sleep_side_bed_temperature
+            data:
+              sleep_stage: bedTimeLevel
+              target: -20
+              duration: 0
+      - conditions:
+          - condition: trigger
+            id:
+              - "-1"
+        sequence:
+          - action: eight_sleep.heat_set
+            target:
+              entity_id: sensor.jack_s_eight_sleep_side_bed_temperature
+            data:
+              sleep_stage: current
+              target: -10
+              duration: 0
+      - conditions:
+          - condition: trigger
+            id:
+              - "0"
+        sequence:
+          - action: eight_sleep.heat_set
+            target:
+              entity_id: sensor.jack_s_eight_sleep_side_bed_temperature
+            data:
+              sleep_stage: current
+              target: 0
+              duration: 0
+      - conditions:
+          - condition: trigger
+            id:
+              - "1"
+        sequence:
+          - action: eight_sleep.heat_set
+            target:
+              entity_id: sensor.jack_s_eight_sleep_side_bed_temperature
+            data:
+              sleep_stage: current
+              target: 10
+              duration: 0
+mode: single
