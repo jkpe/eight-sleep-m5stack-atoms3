@@ -239,4 +239,10 @@ See the full ESPHome configuration in [atoms3.yml](esphome/atoms3.yml).
    mode: single
    ```
 
-If you have ideas for improving this setup or additional features you'd like to see, feel free to share your suggestions in the comments. Feedback is always welcome!
+If you have ideas for improving this setup or additional features you'd like to see, feel free to:
+
+- [Open an issue](https://github.com/jkpe/eight-sleep-m5stack-atoms3/issues)
+- [Submit a pull request](https://github.com/jkpe/eight-sleep-m5stack-atoms3/pulls) 
+- [Start a discussion](https://github.com/jkpe/eight-sleep-m5stack-atoms3/discussions)
+
+Your feedback and contributions are always welcome!
