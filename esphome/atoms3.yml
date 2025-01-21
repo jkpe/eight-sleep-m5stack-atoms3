@@ -3,8 +3,7 @@ esphome:
   friendly_name: 8sleep
   platformio_options:
     build_flags:
-      - "-w" # https://docs.platformio.org/en/latest/projectconf/sections/env/options/build/build_flags.html
-
+      - "-w"
 
 esp32:
   board: m5stack-atoms3
@@ -13,8 +12,7 @@ esp32:
     type: esp-idf
     version: 5.3.1
     platform_version: 6.9.0
-    # Custom sdkconfig options
-    sdkconfig_options: # https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/kconfig.html#config-compiler-disable-gcc12-warnings
+    sdkconfig_options:
       CONFIG_SPIFFS_DBG: n
 
 wifi:
@@ -38,11 +36,18 @@ ota:
 # bluetooth_proxy:
 #  active: false
 
-
 i2c:
   - id: bus_a
     sda: GPIO38
     scl: GPIO39
+
+globals:
+  - id: show_temp_selection
+    type: bool
+    initial_value: 'false'
+  - id: temp_selection_time
+    type: uint32_t
+    initial_value: '0'
 
 sensor:
 #  - platform: mpu6886
@@ -64,8 +69,6 @@ sensor:
 #  - platform: wifi_signal
 #    name: "WiFi Signal Sensor"
 #    update_interval: 120s
-
-  # Home Assistant sensors
   - platform: homeassistant
     name: "Temperature"
     entity_id: sensor.jack_bed_state_template
@@ -76,7 +79,13 @@ sensor:
     name: "Target Heating Level"
     entity_id: sensor.8_sleep_target_temperature_template
     id: target_heating_level
-    unit_of_measurement: "" 
+    unit_of_measurement: ""
+
+  - platform: homeassistant
+    name: "Temperature Selection"
+    entity_id: input_select.eight_sleep_temperature_choices
+    id: temp_selection
+    internal: true
 
 text_sensor:
   - platform: homeassistant
@@ -153,46 +162,71 @@ display:
     reset_pin: 34
     rotation: 0
     invert_colors: true
-    update_interval: 1s
+    update_interval: 250ms
     dimensions:
       height: 128
       width: 128
       offset_height: 1
       offset_width: 2
     lambda: |-
-      it.fill(id(my_black));  // Fill the background with black using defined color
-
-      // Print "8sleep" at the top
-      it.print(0, 0, id(roboto_24), id(my_white), "8sleep");
-
-      // Print Temperature without "°C"
-      if (!isnan(id(temperature).state)) {
-        it.printf(0, 24, id(roboto_18), id(my_white), "Temp: %.1f", id(temperature).state);
+      // Check if we should show temperature selection
+      if (id(show_temp_selection)) {
+        // Check if 2 seconds have passed
+        if (millis() - id(temp_selection_time) > 2000) {
+          id(show_temp_selection) = false;
+        }
+        
+        // Show large temperature selection
+        it.fill(id(my_black));
+        
+        // Get the current temperature selection and convert to string
+        float temp_val = id(temp_selection).state;
+        char temp_str[8];
+        snprintf(temp_str, sizeof(temp_str), "%.0f", temp_val);
+        
+        // Center the text - estimate width based on text length
+        int16_t char_width = 18;  // Approximate width of each character
+        int16_t text_len = strlen(temp_str);
+        int16_t x_pos = (128 - (text_len * char_width)) / 2;
+        int16_t y_pos = 48;  // Center vertically (128/2 - 32/2)
+        
+        // Draw the temperature
+        it.print(x_pos, y_pos, id(roboto_32), id(my_white), temp_str);
       } else {
-        it.print(0, 24, id(roboto_18), id(my_white), "Temp: N/A");
-      }
+        // Normal display code
+        it.fill(id(my_black));
+        
+        // Print "8sleep" at the top
+        it.print(0, 0, id(roboto_24), id(my_white), "8sleep");
 
-      // Print Target Heating Level
-      if (!isnan(id(target_heating_level).state)) {
-        it.printf(0, 48, id(roboto_18), id(my_white), "Target: %.1f", id(target_heating_level).state);
-      } else {
-        it.print(0, 48, id(roboto_18), id(my_white), "Target: N/A");
-      }
+        // Print Temperature
+        if (!isnan(id(temperature).state)) {
+          it.printf(0, 24, id(roboto_18), id(my_white), "Temp: %.1f", id(temperature).state);
+        } else {
+          it.print(0, 24, id(roboto_18), id(my_white), "Temp: N/A");
+        }
 
-      // Print Sleep Stage
-      if (!id(sleep_stage).state.empty()) {
-        it.printf(0, 72, id(roboto_18), id(my_white), "Stage: %s", id(sleep_stage).state.c_str());
-      } else {
-        it.print(0, 72, id(roboto_18), id(my_white), "Stage: N/A");
-      }
+        // Print Target Heating Level
+        if (!isnan(id(target_heating_level).state)) {
+          it.printf(0, 48, id(roboto_18), id(my_white), "Target: %.1f", id(target_heating_level).state);
+        } else {
+          it.print(0, 48, id(roboto_18), id(my_white), "Target: N/A");
+        }
 
-      // Print Bed State Type
-      if (!id(bed_state_type).state.empty()) {
-        it.printf(0, 96, id(roboto_18), id(my_white), "State: %s", id(bed_state_type).state.c_str());
-      } else {
-        it.print(0, 96, id(roboto_18), id(my_white), "State: N/A");
-      }
+        // Print Sleep Stage
+        if (!id(sleep_stage).state.empty()) {
+          it.printf(0, 72, id(roboto_18), id(my_white), "Stage: %s", id(sleep_stage).state.c_str());
+        } else {
+          it.print(0, 72, id(roboto_18), id(my_white), "Stage: N/A");
+        }
 
+        // Print Bed State Type
+        if (!id(bed_state_type).state.empty()) {
+          it.printf(0, 96, id(roboto_18), id(my_white), "State: %s", id(bed_state_type).state.c_str());
+        } else {
+          it.print(0, 96, id(roboto_18), id(my_white), "State: N/A");
+        }
+      }
 
 binary_sensor:
   - platform: gpio
@@ -208,4 +242,20 @@ binary_sensor:
     on_press:
       then:
         - logger.log: Button Pressed
-        
+        - lambda: |-
+            // Only trigger the temperature display if the backlight is on
+            if (id(backlightlight).current_values.is_on()) {
+              id(show_temp_selection) = true;
+              id(temp_selection_time) = millis();
+            }
+
+  - platform: template
+    name: Temperature Selection Changed
+    id: temp_selection_changed
+    lambda: |-
+      return false;  // Initial state
+    on_press:
+      then:
+        - lambda: |-
+            id(show_temp_selection) = true;
+            id(temp_selection_time) = millis();
