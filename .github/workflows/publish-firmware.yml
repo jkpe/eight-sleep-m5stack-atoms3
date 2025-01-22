@@ -12,15 +12,10 @@ jobs:
     name: Build Firmware
     uses: esphome/workflows/.github/workflows/build.yml@2024.12.0
     with:
-      #### Modify below here to match your project ####
       files: |
-        project-template-esp32.factory.yaml
-        project-template-esp32-c3.factory.yaml
-        project-template-esp32-s3.factory.yaml
-      esphome-version: 2024.10.3
-      combined-name: project-template
-      #### Modify above here to match your project ####
-
+        esphome/atoms3.yml
+      esphome-version: 2024.12.4
+      combined-name: eight-sleep-m5stack-atoms3
       release-summary: ${{ github.event.release.body }}
       release-url: ${{ github.event.release.html_url }}
       release-version: ${{ github.event.release.tag_name }}
