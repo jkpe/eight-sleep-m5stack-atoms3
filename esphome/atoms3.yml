@@ -16,10 +16,12 @@ esp32:
       CONFIG_SPIFFS_DBG: n
 
 wifi:
-  networks:
-    - ssid: !secret wifi_ssid
-      password: !secret wifi_password
-  id: wifi_id
+#  networks:
+#    - ssid: !secret wifi_ssid
+#      password: !secret wifi_password
+  ap: {}
+
+captive_portal:
 
 logger:
   baud_rate: 0
